@@ -46,6 +46,7 @@ class AppController extends Controller
 
         // Gestion de l'authentification
         $this->loadComponent('Auth', [
+            'authorize' => 'Controller',
             'authenticate' => [
                 'Form' => [
                     'fields' => [
@@ -63,8 +64,8 @@ class AppController extends Controller
             'unauthorizedRedirect' => $this->referer()
         ]);
 
-        // Autorise l'action display pour que notre controller de pages
-        // continue de fonctionner.
+        // Allow the display action so our pages controller
+        // continues to work.
         $this->Auth->allow(['display']);
 
         /*
@@ -88,5 +89,15 @@ class AppController extends Controller
         ) {
             $this->set('_serialize', true);
         }
+    }
+
+    /**
+     * [isAuthorized description]
+     * @param  [type]  $user [the user to check if he has the permissions]
+     * @return boolean       [description]
+     */
+    public function isAuthorized($user)
+    {
+        return false;
     }
 }

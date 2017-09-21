@@ -110,4 +110,54 @@ class BookmarksTable extends Table
 
         return $bookmarks->group(['Bookmarks.id']);
     }
+
+    /**
+     * [beforeSave description]
+     * @param  [type] $event   [description]
+     * @param  [type] $entity  [description]
+     * @param  [type] $options [description]
+     * @return [type]          [description]
+     */
+    public function beforeSave($event, $entity, $options)
+    {
+        if ($entity->tag_string) {
+            $entity->tags = $this->_buildTags($entity->tag_string);
+        }
+    }
+
+    /**
+     * [_buildTags description]
+     * @param  [type] $tagString [description]
+     * @return [type]            [description]
+     */
+    protected function _buildTags($tagString)
+    {
+        // Trim tags
+        $newTags = array_map('trim', explode(',', $tagString));
+        // Retire tous les tags vides
+        $newTags = array_filter($newTags);
+        // Réduit les tags dupliqués
+        $newTags = array_unique($newTags);
+
+        $out = [];
+        $query = $this->Tags->find()
+            ->where(['Tags.title IN' => $newTags]);
+
+        // Retire les tags existants de la liste des tags nouveaux.
+        foreach ($query->extract('title') as $existing) {
+            $index = array_search($existing, $newTags);
+            if ($index !== false) {
+                unset($newTags[$index]);
+            }
+        }
+        // Ajoute les tags existants.
+        foreach ($query as $tag) {
+            $out[] = $tag;
+        }
+        // Ajoute les nouveaux tags.
+        foreach ($newTags as $tag) {
+            $out[] = $this->Tags->newEntity(['title' => $tag]);
+        }
+        return $out;
+    }
 }
